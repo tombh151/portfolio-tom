@@ -836,6 +836,31 @@ footer .foot-big{-webkit-text-stroke:0;color:rgba(255,255,255,.08)}
   font-family:'Heebo';font-weight:500;font-size:1rem;color:var(--royal);display:inline-flex;align-items:center}
 .cs-principle-chip::before{display:none!important}
 .cs-principle-chip:not(:last-child)::after{content:'';display:inline-block;width:1px;height:1em;background:var(--sky);margin:0 14px}
+
+/* ═════════ OPTION B — project transition + next project ═════════ */
+.flip-veil{position:fixed;inset:0;z-index:270;background:var(--bg);pointer-events:none}
+.flip-media{position:fixed;z-index:271;overflow:hidden;pointer-events:none;background:#0a2463}
+.flip-media img{width:100%;height:100%;object-fit:cover;display:block;transition:filter .7s ease}
+.flip-media::after{content:'';position:absolute;inset:0;background:linear-gradient(200deg,rgba(10,36,99,0) 0%,rgba(10,36,99,.25) 40%,rgba(10,36,99,.7) 100%);mix-blend-mode:color;transition:opacity .7s ease}
+.flip-media.toned img{filter:grayscale(1) contrast(1.02) brightness(1.03)}
+.flip-media:not(.toned)::after{opacity:0}
+.flip-title{position:fixed;z-index:272;white-space:nowrap;color:var(--deep);transform-origin:top right;pointer-events:none;margin:0}
+.modal-backdrop.flip,.modal-backdrop.flip .modal{transition:none!important}
+.modal-backdrop.flip .modal{transform:none}
+.modal-backdrop.flip .cs-header-title .w > span{transition:none!important;transform:none}
+.modal-backdrop.flip .cs-hero-bg img{transition:none!important;transform:none}
+.modal-backdrop.flip .cs-hero-bg img.m{opacity:0}
+
+.cs-next{display:block;margin:110px 0 0;padding-top:48px;border-top:1.5px solid var(--soft);color:var(--deep);cursor:pointer;outline:none}
+.cs-next-media{display:block;position:relative;width:100%;aspect-ratio:21/8;overflow:hidden}
+.cs-next-media img.c{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;transition:transform .9s cubic-bezier(.2,.9,.2,1)}
+.cs-next:hover .cs-next-media img.c,.cs-next:hover .cs-next-media img.m{transform:scale(1.03)}
+.cs-next-title{display:flex;align-items:baseline;gap:22px;margin-top:22px;font-family:'Rubik';font-weight:900;font-size:clamp(34px,5vw,72px);line-height:1;letter-spacing:-.02em}
+.cs-next-name{transition:color .3s}
+.cs-next-arrow{color:var(--blue);font-weight:500;font-size:.7em;transition:transform .45s cubic-bezier(.2,.9,.2,1)}
+.cs-next:hover .cs-next-name,.cs-next:focus-visible .cs-next-name{color:var(--blue)}
+.cs-next:hover .cs-next-arrow,.cs-next:focus-visible .cs-next-arrow{transform:translateX(-12px)}
+@media (max-width:640px){.cs-next{margin-top:80px;padding-top:36px}.cs-next-media{aspect-ratio:16/9}.cs-next-title{gap:14px}}
 </style>
 </head>
 <body class="locked">
@@ -1361,8 +1386,8 @@ function buildGrid(){
         <div class="project-overlay-title">${p.title}</div>
         <div class="project-overlay-sub">${p.subtitle || ''}</div>
       </div>`;
-    card.addEventListener('click', e => openModal(idx, e));
-    card.addEventListener('keydown', e => { if (e.key==='Enter'||e.key===' '){ e.preventDefault(); openModal(idx); } });
+    card.addEventListener('click', () => transitionTo(idx, card.querySelector('.project-thumb'), card.querySelector('.project-overlay-title')));
+    card.addEventListener('keydown', e => { if (e.key==='Enter'||e.key===' '){ e.preventDefault(); transitionTo(idx, card.querySelector('.project-thumb'), card.querySelector('.project-overlay-title')); } });
     grid.appendChild(card);
   });
 }
@@ -1407,9 +1432,18 @@ function renderCaseStudy(p, idx){
     else inner = `${heading}${bodyText}${principles}${imgsBlock(p, sec)}`;
     html += `<section class="cs-section cs-layout-${sec.layout}">${inner}</section>`;
   });
+  const ni = (idx + 1) % projects.length, np = projects[ni];
+  html += `<div class="cs-next" role="button" tabindex="0" aria-label="${np.title}">
+      <span class="cs-next-media duo spot"><img class="c" src="${np.heroImg}" alt="${np.title}" loading="lazy"><img class="m" src="${np.heroImg}" alt="" aria-hidden="true" loading="lazy"><span class="tint" aria-hidden="true"></span></span>
+      <span class="cs-next-title"><span class="cs-next-name">${np.title}</span><span class="cs-next-arrow" aria-hidden="true">←</span></span>
+    </div>`;
   html += `</div>`;
   wrap.innerHTML = html;
   document.getElementById('csCloseBtn').addEventListener('click', closeModal);
+  const nx = wrap.querySelector('.cs-next'), nm = nx.querySelector('.cs-next-media'), nn = nx.querySelector('.cs-next-name');
+  nx.addEventListener('click', () => transitionTo(ni, nm, nn));
+  nx.addEventListener('keydown', e => { if (e.key==='Enter'||e.key===' '){ e.preventDefault(); transitionTo(ni, nm, nn); } });
+  if (window.bindSpot) window.bindSpot(nm, nx);
 }
 
 /* ── Open / close with pop-art wipe ── */
@@ -1452,6 +1486,66 @@ async function closeModal(){
   busy = false;
 }
 
+/* ── Project transition: the clicked image grows into the project header ── */
+const FLIP_EASE = 'cubic-bezier(.7,0,.2,1)';
+function setupModalReveal(){
+  if (modalIO) modalIO.disconnect();
+  modalIO = new IntersectionObserver(es => es.forEach(e => { if (e.isIntersecting){ e.target.classList.add('in'); modalIO.unobserve(e.target);} }), {root:backdrop, threshold:.1});
+  backdrop.querySelectorAll('.reveal').forEach(e => modalIO.observe(e));
+}
+function fade(nodes, from, to, dur){
+  return Promise.all(nodes.filter(Boolean).map(n => n.animate([{opacity:from},{opacity:to}], {duration:dur, easing:'ease', fill:'forwards'}).finished));
+}
+async function transitionTo(idx, srcMedia, srcTitle){
+  if (busy) return;
+  if (reduce || !srcMedia || !Element.prototype.animate) return openModal(idx);
+  busy = true;
+  const p = projects[idx];
+  const mR = srcMedia.getBoundingClientRect();
+  const radius = getComputedStyle(srcMedia).borderRadius || '0px';
+  const toned = srcMedia.classList.contains('duo') && !srcMedia.classList.contains('lit');
+
+  const veil = document.createElement('div'); veil.className = 'flip-veil';
+  const media = document.createElement('div'); media.className = 'flip-media' + (toned ? ' toned' : '');
+  media.innerHTML = `<img src="${p.heroImg}" alt="">`;
+  Object.assign(media.style, {left:mR.left+'px', top:mR.top+'px', width:mR.width+'px', height:mR.height+'px', borderRadius:radius});
+  let title = null, tR0 = null, srcFont = 0;
+  if (srcTitle){
+    tR0 = srcTitle.getBoundingClientRect(); const cs = getComputedStyle(srcTitle); srcFont = parseFloat(cs.fontSize);
+    title = document.createElement('div'); title.className = 'flip-title'; title.textContent = srcTitle.textContent.trim();
+    Object.assign(title.style, {right:(innerWidth - tR0.right)+'px', top:tR0.top+'px', fontFamily:cs.fontFamily, fontWeight:cs.fontWeight, fontSize:cs.fontSize, lineHeight:cs.lineHeight, letterSpacing:cs.letterSpacing});
+  }
+  document.body.append(veil, media); if (title) document.body.append(title);
+  await fade([veil], 0, 1, 220);
+
+  // swap content underneath the veil
+  const inner = document.getElementById('modalInner');
+  inner.style.setProperty('--tch', ACCENTS[idx % ACCENTS.length]); inner.style.setProperty('--acc', 'var(--royal)');
+  renderCaseStudy(p, idx);
+  backdrop.classList.add('flip', 'open'); document.body.classList.add('locked'); backdrop.scrollTop = 0;
+  const hR = backdrop.querySelector('.cs-hero').getBoundingClientRect();
+  const tgt = backdrop.querySelector('.cs-header-title'), tR = tgt.getBoundingClientRect();
+  tgt.style.visibility = 'hidden';
+
+  requestAnimationFrame(() => media.classList.remove('toned'));
+  const runs = [media.animate([
+    {left:mR.left+'px', top:mR.top+'px', width:mR.width+'px', height:mR.height+'px', borderRadius:radius},
+    {left:hR.left+'px', top:hR.top+'px', width:hR.width+'px', height:hR.height+'px', borderRadius:'0px'}
+  ], {duration:700, easing:FLIP_EASE, fill:'forwards'}).finished];
+  if (title){
+    const s = parseFloat(getComputedStyle(tgt).fontSize) / srcFont;
+    runs.push(title.animate([{transform:'none'}, {transform:`translate(${tR.right - tR0.right}px, ${tR.top - tR0.top}px) scale(${s})`}],
+      {duration:700, easing:FLIP_EASE, fill:'forwards'}).finished);
+  }
+  await Promise.all(runs);
+  tgt.style.visibility = '';
+  setupModalReveal();
+  await fade([veil, media, title], 1, 0, 320);
+  [veil, media, title].forEach(n => n && n.remove());
+  backdrop.classList.remove('flip');
+  busy = false;
+}
+
 /* ── Lightbox ── */
 function openLightbox(src){ document.getElementById('lightboxImg').src = src; document.getElementById('lightbox').classList.add('open'); }
 function closeLightbox(){ document.getElementById('lightbox').classList.remove('open'); }
@@ -1489,8 +1583,8 @@ buildGrid();
   }
   document.getElementById('heroFeaturedTitle').textContent = featured.title;
   document.getElementById('heroFeaturedSub').textContent = featured.subtitle || '';
-  document.querySelector('.hero-right').addEventListener('keydown', e => { if (e.key==='Enter'||e.key===' '){ e.preventDefault(); openModal(0);} });
-  document.querySelector('.hero-right').addEventListener('click', e => openModal(0, e));
+  document.querySelector('.hero-right').addEventListener('keydown', e => { if (e.key==='Enter'||e.key===' '){ e.preventDefault(); transitionTo(0, document.getElementById('heroImgWrap'), document.getElementById('heroFeaturedTitle')); } });
+  document.querySelector('.hero-right').addEventListener('click', () => transitionTo(0, document.getElementById('heroImgWrap'), document.getElementById('heroFeaturedTitle')));
 })();
 
 /* ── Cursor, parallax, progress ── */
@@ -1541,6 +1635,7 @@ buildGrid();
     host.addEventListener('blur', () => el.classList.remove('lit'));
   }
   function pos(el,e){ const r = el.getBoundingClientRect(); el.style.setProperty('--mx', (e.clientX-r.left)+'px'); el.style.setProperty('--my', (e.clientY-r.top)+'px'); }
+  window.bindSpot = bind;
   document.querySelectorAll('.project-card').forEach(c => bind(c.querySelector('.spot'), c));
   const hr = document.querySelector('.hero-right'), f2 = document.getElementById('feat2'), fm = document.getElementById('heroImgWrap');
   bind(fm, hr);
