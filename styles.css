@@ -416,3 +416,29 @@ button{font:inherit;color:inherit;background:none;border:0;cursor:pointer}
 @media (prefers-reduced-motion:reduce){
   *,*::before,*::after{animation-duration:.01ms!important;animation-iteration-count:1!important;transition-duration:.01ms!important}
 }
+
+/* ═════════ LANGUAGE ═════════ */
+.lang{gap:0;padding:0 14px;background:var(--white);color:var(--ink);box-shadow:0 0 0 1px var(--line);font:700 12px/1 var(--f-text);letter-spacing:.08em;transition:background .3s,color .3s}
+.lang:hover,.lang:focus-visible{background:var(--ink);color:var(--white)}
+.lang[lang="he"]{letter-spacing:0;font-size:13px}
+.lang__short{display:none}
+@media (max-width:760px){
+  .lang{padding:0 10px}
+  .lang__full{display:none}
+  .lang__short{display:inline}
+}
+
+/* English reads left to right: mirror the few direction-bound details */
+[dir="ltr"] .progress{transform-origin:left}
+[dir="ltr"] .about__title .sq{margin-right:0;margin-left:.12em}
+[dir="ltr"] .case-cover::after{background:linear-gradient(90deg,rgba(242,241,236,.8) 0%,rgba(242,241,236,.35) 55%,rgba(242,241,236,.1) 100%),linear-gradient(0deg,var(--paper) 0%,rgba(242,241,236,0) 22%)}
+[dir="ltr"] .next:hover .next__arrow{transform:translateX(12px)}
+[dir="ltr"] .lb__prev{right:auto;left:16px}
+[dir="ltr"] .lb__next{left:auto;right:16px}
+[dir="ltr"] .cs__title .en{text-align:left}
+[dir="ltr"] .hero__title,[dir="ltr"] .case-title,[dir="ltr"] .sec-title,[dir="ltr"] .about__title{letter-spacing:-.025em}
+/* phones: room for the language button — the logo mark stands in for the name */
+@media (max-width:480px){
+  .brand{padding:0 12px}
+  .brand__name{display:none}
+}

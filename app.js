@@ -6,7 +6,18 @@
 
 const PROJECTS = window.PROJECTS || [];
 const DIMS = window.IMG_DIMS || {};
-const S = window.SITE, UI = window.UI;
+// Hebrew is the source; English (en.js) overlays it section by section.
+const EN = window.I18N_EN || null;
+const S_HE = window.SITE, UI_HE = window.UI;
+let LANG = 'he';
+let S = S_HE, UI = UI_HE;
+const fwd = () => (LANG === 'en' ? '→' : '←');
+function toEnglish(p) {
+  const o = EN && EN.projects && EN.projects[p.id];
+  if (!o) return p;
+  const { sections: secs = {}, ...top } = o;
+  return { ...p, ...top, sections: p.sections.map(sec => ({ ...sec, ...(secs[sec.id] || {}) })) };
+}
 
 // One primary colour and one primitive per project.
 const META = {
@@ -16,7 +27,7 @@ const META = {
   2: { slug: 'liba',    c: 'var(--green)',  on: 'var(--white)', shape: 'bowl'     }, // concave balance board
 };
 const LEAD = 'loop';
-const WORK = PROJECTS.map((p, i) => ({ p, i, ...(META[p.id] || { slug: 'p' + p.id, c: 'var(--ink)', on: 'var(--white)', shape: 'square' }) }));
+const WORK = PROJECTS.map((p, i) => ({ p, he: p, en: toEnglish(p), i, ...(META[p.id] || { slug: 'p' + p.id, c: 'var(--ink)', on: 'var(--white)', shape: 'square' }) }));
 const bySlug = s => WORK.find(w => w.slug === s);
 
 const $ = (s, r = document) => r.querySelector(s);
@@ -31,7 +42,8 @@ if (motion) document.documentElement.classList.add('js-motion');
 if ('scrollRestoration' in history) history.scrollRestoration = 'manual';
 
 const app = $('#app'), hdr = $('#hdr'), progress = $('#progress');
-const baseTitle = document.title;
+const titleHE = document.title;
+let baseTitle = titleHE;
 
 /* smooth scroll */
 let lenis = null;
@@ -215,7 +227,7 @@ function caseHTML(w) {
     <a class="next" href="#/work/${next.slug}" ${hostAttrs(next)} data-cursor="open">
       <span class="next__label">${UI.next}</span>
       <span class="next__img">${img(next.p.heroImg, '')}</span>
-      <span class="next__row"><span class="next__title">${next.p.title}</span><span class="next__arrow" aria-hidden="true">←</span></span>
+      <span class="next__row"><span class="next__title">${next.p.title}</span><span class="next__arrow" aria-hidden="true">${fwd()}</span></span>
     </a>
     <div class="case-foot"><span>${S.footerLeft}</span><span>${S.footerRight}</span></div>
   </article>`;
@@ -637,14 +649,58 @@ function initCommon() {
 }
 
 /* ───────── header ───────── */
-function initHeader() {
+function headerText() {
   $('#logoName').textContent = S.logoName;
   $('#logoTag').textContent = S.logoTag;
   $('#closeLabel').textContent = S.nav.projects;
   $('#closeBtn').setAttribute('aria-label', S.nav.projects);
   $('#hdrContact').textContent = S.nav.contact;
+  $('#nav').setAttribute('aria-label', S.navLabel || 'ניווט');
   $('#nav').innerHTML = [['about', S.nav.about], ['projects', S.nav.projects]]
     .map(([id, t]) => `<a href="#${id}" data-scroll="${id}">${t}</a>`).join('');
+  const lb = $('#langBtn');
+  if (lb) {
+    const toEN = LANG !== 'en';
+    lb.querySelector('.lang__full').textContent = toEN ? 'ENGLISH' : 'עברית';
+    lb.querySelector('.lang__short').textContent = toEN ? 'EN' : 'עב';
+    lb.setAttribute('lang', toEN ? 'en' : 'he');
+    lb.setAttribute('aria-label', toEN ? 'Switch to English' : 'מעבר לעברית');
+  }
+  // lightbox arrows follow reading direction
+  $('#lbPrev span').textContent = LANG === 'en' ? '←' : '→';
+  $('#lbNext span').textContent = LANG === 'en' ? '→' : '←';
+}
+
+/* ───────── language: Hebrew ⇄ English ───────── */
+function setLang(lang) {
+  LANG = lang === 'en' && EN ? 'en' : 'he';
+  S = LANG === 'en' ? { ...S_HE, ...EN.site, nav: { ...S_HE.nav, ...EN.site.nav } } : S_HE;
+  UI = LANG === 'en' ? { ...UI_HE, ...EN.ui } : UI_HE;
+  WORK.forEach(w => { w.p = LANG === 'en' ? w.en : w.he; });
+  baseTitle = LANG === 'en' ? (EN.title || titleHE) : titleHE;
+  const root = document.documentElement;
+  root.lang = LANG; root.dir = LANG === 'en' ? 'ltr' : 'rtl';
+  headerText();
+  try { localStorage.setItem('portfolio-lang', LANG); } catch (_) {}
+}
+async function switchLang() {
+  if (busy) return;
+  busy = true;
+  const y = scrollY;
+  if (G && !reduce) await G.to(app, { opacity: 0, duration: 0.25, ease: 'power1.out' });
+  setLang(LANG === 'en' ? 'he' : 'en');
+  closeLB(true);
+  mount(view);
+  scrollTo(Math.min(y, document.documentElement.scrollHeight - innerHeight), { immediate: true });
+  if (ST) ST.refresh();
+  if (G && !reduce) await G.to(app, { opacity: 1, duration: 0.35, ease: 'power1.out', clearProps: 'opacity' });
+  busy = false;
+}
+
+function initHeader() {
+  headerText();
+  const lb = $('#langBtn');
+  if (lb) lb.addEventListener('click', switchLang);
   let lastY = 0;
   addEventListener('scroll', () => {
     const y = scrollY;
@@ -673,7 +729,7 @@ function initCursor() {
     c.classList.toggle('is-hidden', !!(t && t.closest('.lb__stage') && $('#lbLoupe').classList.contains('is-on')));
     if (host) { c.dataset.shape = host.dataset.shape; c.style.setProperty('--c', host.dataset.c); c.style.setProperty('--on', host.dataset.on); }
     else { c.dataset.shape = ''; }
-    icon.textContent = open ? '←' : zoom ? '+' : '';
+    icon.textContent = open ? fwd() : zoom ? '+' : '';
   }, { passive: true });
   document.addEventListener('pointerleave', () => c.classList.add('is-hidden'));
   document.addEventListener('pointerenter', () => c.classList.remove('is-hidden'));
@@ -769,8 +825,9 @@ document.addEventListener('click', e => {
 document.addEventListener('keydown', e => {
   if (!lb.el.hidden) {
     if (e.key === 'Escape') closeLB();
-    if (e.key === 'ArrowLeft') lbShow(lb.i + 1);
-    if (e.key === 'ArrowRight') lbShow(lb.i - 1);
+    const rtl = LANG !== 'en';
+    if (e.key === 'ArrowLeft') lbShow(lb.i + (rtl ? 1 : -1));
+    if (e.key === 'ArrowRight') lbShow(lb.i + (rtl ? -1 : 1));
     return;
   }
   const fig = document.activeElement && document.activeElement.closest && document.activeElement.closest('[data-idx]');
@@ -790,6 +847,9 @@ addEventListener('resize', () => { clearTimeout(rz); rz = setTimeout(() => { fit
 
 /* ───────── boot ───────── */
 async function boot() {
+  let saved = 'he';
+  try { saved = localStorage.getItem('portfolio-lang') || 'he'; } catch (_) {}
+  setLang(saved);
   $('#loaderA').textContent = S.introA;
   $('#loaderB').textContent = S.introB;
   initHeader(); initCursor(); initLB();
