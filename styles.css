@@ -496,3 +496,11 @@ html[lang="en"] .wcard__title{order:1}
 html[lang="en"] .wcard__sub{order:2}
 html[lang="en"] .wcard__cat{order:3;font:400 clamp(15px,1.1vw,17px)/1.5 var(--f-text);letter-spacing:0;text-transform:none;color:var(--ink)}
 html[lang="en"] .wcard__cat::before{width:10px;height:10px}
+
+/* English: keywords read as a quiet list, not as buttons */
+html[lang="en"] .principles,html[lang="en"] .tags{gap:6px 0}
+html[lang="en"] .principles span,html[lang="en"] .principles span:first-child,html[lang="en"] .tags li{
+  height:auto;padding:0;background:none;box-shadow:none;color:var(--ink-2);
+  font:500 clamp(15px,1.1vw,17px)/1.5 var(--f-text);letter-spacing:.01em;display:inline-flex;align-items:center}
+html[lang="en"] .principles span:not(:last-child)::after,html[lang="en"] .tags li:not(:last-child)::after{
+  content:'';width:5px;height:5px;margin:0 14px;background:var(--c);flex:none}
