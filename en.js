@@ -30,7 +30,7 @@ window.I18N_EN = {
       ["Fabrication Lab Manager", "Weizmann Institute of Science — Physics FabLab"],
       ["Lecturer and Academic Project Mentor", "Mechanical Engineering | Inclusive Product Design"],
       ["Founder and Head of Product Development", "Neurotechnology startup"],
-      ["B.Des. in Industrial Design, Summa Cum Laude", "Jerusalem Multidisciplinary College · 2020–2024"]
+      ["B.Des. in Industrial Design, With Highest Honors", "Jerusalem Multidisciplinary College · 2020–2024"]
     ],
     projectsTitle: "Selected Projects",
     footerLeft: "© Tom Adele Ben Hamo",
