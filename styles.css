@@ -466,7 +466,7 @@ html[lang="en"] .quote{font:500 clamp(26px,3vw,50px)/1.25 var(--f-text);letter-s
 html[lang="en"] .cursor__icon,html[lang="en"] .next__arrow{font-family:var(--f-text)}
 html[lang="en"] .cs__text,html[lang="en"] .about__text{letter-spacing:0}
 /* small labels: spaced capitals, like PORTFOLIO on the poster */
-html[lang="en"] .brand__tag,html[lang="en"] .label,html[lang="en"] .next__label,html[lang="en"] .case-cat,html[lang="en"] .wcard__cat{letter-spacing:.08em;text-transform:uppercase;font-size:12px}
+html[lang="en"] .brand__tag,html[lang="en"] .label,html[lang="en"] .next__label,html[lang="en"] .wcard__cat{letter-spacing:.08em;text-transform:uppercase;font-size:12px}
 html[lang="en"] .wcard__cat{font-size:13px}
 /* the three disciplines sit right under the name, set larger and bolder */
 html[lang="en"] .hero__title{order:1}
@@ -484,3 +484,10 @@ html[lang="en"] .btn,html[lang="en"] .hbtn{letter-spacing:.02em}
 @media (max-width:760px){
   html[lang="en"] .hero__title{font-size:clamp(88px,27vw,150px)}
 }
+
+/* English project header: the role line sits under the description, in the same face */
+html[lang="en"] .case-title{order:1}
+html[lang="en"] .case-sub{order:2}
+html[lang="en"] .case-cat{order:3;margin-top:-6px;font:500 clamp(18px,1.6vw,24px)/1.4 var(--f-text);letter-spacing:0;text-transform:none;color:var(--ink)}
+html[lang="en"] .case-cat::before{width:11px;height:11px}
+html[lang="en"] .tags{order:4}
