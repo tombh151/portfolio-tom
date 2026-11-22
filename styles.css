@@ -468,7 +468,13 @@ html[lang="en"] .cs__text,html[lang="en"] .about__text{letter-spacing:0}
 /* small labels: spaced capitals, like PORTFOLIO on the poster */
 html[lang="en"] .brand__tag,html[lang="en"] .label,html[lang="en"] .next__label,html[lang="en"] .case-cat,html[lang="en"] .wcard__cat{letter-spacing:.08em;text-transform:uppercase;font-size:12px}
 html[lang="en"] .wcard__cat{font-size:13px}
-html[lang="en"] .hero__tags{font-weight:600;letter-spacing:.01em}
+/* the three disciplines sit right under the name, set larger and bolder */
+html[lang="en"] .hero__title{order:1}
+html[lang="en"] .hero__tags{order:2;margin-top:clamp(-6px,-.4vw,0px);gap:8px 26px;font:700 clamp(17px,1.45vw,22px)/1.25 var(--f-text);letter-spacing:.06em;text-transform:uppercase}
+html[lang="en"] .hero__tags li{gap:10px}
+html[lang="en"] .hero__tags li::before{width:11px;height:11px}
+html[lang="en"] .hero__rule{order:3}
+html[lang="en"] .hero__cta{order:4}
 html[lang="en"] .tags li,html[lang="en"] .principles span{font-weight:600;letter-spacing:.02em}
 html[lang="en"] .btn,html[lang="en"] .hbtn{letter-spacing:.02em}
 /* left-to-right: underlines and hover fills grow from the left */
