@@ -466,8 +466,7 @@ html[lang="en"] .quote{font:500 clamp(26px,3vw,50px)/1.25 var(--f-text);letter-s
 html[lang="en"] .cursor__icon,html[lang="en"] .next__arrow{font-family:var(--f-text)}
 html[lang="en"] .cs__text,html[lang="en"] .about__text{letter-spacing:0}
 /* small labels: spaced capitals, like PORTFOLIO on the poster */
-html[lang="en"] .brand__tag,html[lang="en"] .label,html[lang="en"] .next__label,html[lang="en"] .wcard__cat{letter-spacing:.08em;text-transform:uppercase;font-size:12px}
-html[lang="en"] .wcard__cat{font-size:13px}
+html[lang="en"] .brand__tag,html[lang="en"] .label,html[lang="en"] .next__label{letter-spacing:.08em;text-transform:uppercase;font-size:12px}
 /* the three disciplines sit right under the name, set larger and bolder */
 html[lang="en"] .hero__title{order:1}
 html[lang="en"] .hero__tags{order:2;margin-top:clamp(-6px,-.4vw,0px);gap:8px 26px;font:700 clamp(17px,1.45vw,22px)/1.25 var(--f-text);letter-spacing:.06em;text-transform:uppercase}
@@ -491,3 +490,9 @@ html[lang="en"] .case-sub{order:2}
 html[lang="en"] .case-cat{order:3;margin-top:-6px;font:500 clamp(18px,1.6vw,24px)/1.4 var(--f-text);letter-spacing:0;text-transform:none;color:var(--ink)}
 html[lang="en"] .case-cat::before{width:11px;height:11px}
 html[lang="en"] .tags{order:4}
+
+/* English project cards: same order as the project page — name, description, then the role line in the description's face */
+html[lang="en"] .wcard__title{order:1}
+html[lang="en"] .wcard__sub{order:2}
+html[lang="en"] .wcard__cat{order:3;font:400 clamp(15px,1.1vw,17px)/1.5 var(--f-text);letter-spacing:0;text-transform:none;color:var(--ink)}
+html[lang="en"] .wcard__cat::before{width:10px;height:10px}
